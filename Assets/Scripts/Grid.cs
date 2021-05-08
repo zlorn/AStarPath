@@ -9,7 +9,7 @@ public class Grid : MonoBehaviour
 	/// <summary>
 	/// 节点半径
 	/// </summary>
-	public float nodeRadius = 0.25f;
+	public float nodeRadius = 0.5f;
 	/// <summary>
 	/// 过滤墙体所在的层
 	/// </summary>
@@ -79,8 +79,8 @@ public class Grid : MonoBehaviour
 	void Awake() 
 	{
 		// 初始化格子
-		w = Mathf.RoundToInt(transform.localScale.x * 2);
-		h = Mathf.RoundToInt(transform.localScale.y * 2);
+		w = Mathf.RoundToInt(transform.localScale.x);
+		h = Mathf.RoundToInt(transform.localScale.y);
 		grid = new NodeItem[w, h];
 
 		wallRange = new GameObject ("WallRange");
@@ -91,7 +91,7 @@ public class Grid : MonoBehaviour
 		{
 			for (int y = 0; y < h; y++) 
 			{
-				Vector3 pos = new Vector3 (x*0.5f, y*0.5f, -0.25f);
+				Vector3 pos = new Vector3 (x, y, -0.5f);
 				// 通过节点中心发射圆形射线，检测当前位置是否可以行走
 				bool isWall = Physics.CheckSphere (pos, nodeRadius, wallLayer);
 				// 构建一个节点
@@ -111,8 +111,8 @@ public class Grid : MonoBehaviour
 	/// </summary>
 	public NodeItem GetItem(Vector3 position) 
 	{
-		int x = Mathf.RoundToInt (position.x) * 2;
-		int y = Mathf.RoundToInt (position.y) * 2;
+		int x = Mathf.RoundToInt (position.x);
+		int y = Mathf.RoundToInt (position.y);
 		x = Mathf.Clamp (x, 0, w - 1);
 		y = Mathf.Clamp (y, 0, h - 1);
 		return grid [x, y];
