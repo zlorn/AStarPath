@@ -3,13 +3,9 @@ using System.Collections.Generic;
 
 public class Grid : MonoBehaviour 
 {
-	public GameObject nodeWall;
-	public GameObject node;
+	public GameObject wall;
+	public GameObject pathPoint;
 
-	/// <summary>
-	/// 节点半径
-	/// </summary>
-	public float nodeRadius = 0.5f;
 	/// <summary>
 	/// 过滤墙体所在的层
 	/// </summary>
@@ -91,15 +87,15 @@ public class Grid : MonoBehaviour
 		{
 			for (int y = 0; y < h; y++) 
 			{
-				Vector3 pos = new Vector3 (x, y, -0.5f);
+				Vector3 pos = new Vector3 (x, y, -0.1f);
 				// 通过节点中心发射圆形射线，检测当前位置是否可以行走
-				bool isWall = Physics.CheckSphere (pos, nodeRadius, wallLayer);
+				bool isWall = Physics.CheckSphere (pos, 0.5f, wallLayer);
 				// 构建一个节点
 				grid[x, y] = new NodeItem (isWall, pos, x, y);
 				// 如果是墙体，则画出不可行走的区域
 				if (isWall) 
 				{
-					GameObject obj = GameObject.Instantiate (nodeWall, pos, Quaternion.identity) as GameObject;
+					GameObject obj = GameObject.Instantiate (wall, pos, Quaternion.identity) as GameObject;
 					obj.transform.SetParent (wallRange.transform);
 				}
 			}
@@ -155,7 +151,7 @@ public class Grid : MonoBehaviour
 			} 
 			else 
 			{
-				GameObject obj = GameObject.Instantiate(node, lines [i].pos, Quaternion.identity) as GameObject;
+				GameObject obj = GameObject.Instantiate(pathPoint, lines [i].pos, Quaternion.identity) as GameObject;
 				obj.transform.SetParent(pathRange.transform);
 				pathObjs.Add(obj);
 			}
