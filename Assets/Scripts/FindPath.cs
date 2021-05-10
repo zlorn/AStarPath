@@ -45,11 +45,12 @@ public class FindPath : MonoBehaviour
 		{
 			Grid.NodeItem curNode = openList [0];
 
-			for (int i = 0, max = openList.Count; i < max; i++) 
+			// 从 openList 中找出 fCost 最小的节点
+			for (int i = 0; i < openList.Count; i++) 
 			{
-				if (openList [i].fCost <= curNode.fCost && openList [i].hCost < curNode.hCost) 
+				if (openList[i].fCost < curNode.fCost) 
 				{
-					curNode = openList [i];
+					curNode = openList[i];
 				}
 			}
 
@@ -69,21 +70,23 @@ public class FindPath : MonoBehaviour
 				// 如果是墙或者已经在关闭列表中
 				if (item.isWall || closeSet.Contains(item))
 					continue;
-				// 计算当前相邻节点到开始节点距离
-				int gCostNew = curNode.gCost + GetNodeDistance(curNode, item);
-				// 如果距离更小，或者原来不在开始列表中
-				if (gCostNew < item.gCost || !openList.Contains(item)) 
+
+				item.hCost = GetHCost(item, endNode);
+				int gCost = curNode.gCost + GetGCost(curNode, item);
+				// 如果不在列表中，则加入列表
+				if (!openList.Contains(item))
 				{
-					// 更新与开始节点的距离
-					item.gCost = gCostNew;
-					// 更新与终点的距离
-					item.hCost = GetNodeDistance(item, endNode);
-					// 更新父节点为当前选定的节点
+					item.gCost = gCost;
 					item.parent = curNode;
-					// 如果节点是新加入的，将它加入打开列表中
-					if (!openList.Contains (item)) 
+					openList.Add(item);
+				}
+				else
+				{
+					// 如果已经在列表中，并且 gCost 更小，则更新 gCost 和 parent
+					if (gCost < item.gCost)
 					{
-						openList.Add (item);
+						item.gCost = gCost;
+						item.parent = curNode;
 					}
 				}
 			}
@@ -113,9 +116,26 @@ public class FindPath : MonoBehaviour
 	}
 
 	/// <summary>
-	/// 使用对角算法获取两个节点之间的距离
+	/// 相邻节点的 gCost
+	/// 横纵移动代价为 10 ，对角线移动代价为 14
 	/// </summary>
-	int GetNodeDistance(Grid.NodeItem a, Grid.NodeItem b) 
+	int GetGCost(Grid.NodeItem a, Grid.NodeItem b)
+	{
+		if (a.x == b.x || a.y == b.y)
+		{
+			return 10;
+		}
+		else 
+		{
+			return 14;
+		}
+	}
+
+	/// <summary>
+	/// 使用对角算法获取两个节点之间的 hCost 距离
+	/// 横纵移动代价为 10 ，对角线移动代价为 14
+	/// </summary>
+	int GetHCost(Grid.NodeItem a, Grid.NodeItem b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);
