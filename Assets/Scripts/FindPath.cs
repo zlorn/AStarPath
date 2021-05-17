@@ -4,21 +4,23 @@ using System.Collections.Generic;
 
 public class FindPath : MonoBehaviour 
 {
-	private Grid grid;
+	private Map map;
 	private Vector3 lastStart = Vector3.zero;
 	private Vector3 lastEnd = Vector3.zero;
 
 	void Start () 
 	{
-		grid = GetComponent<Grid> ();
+		map = GetComponent<Map>();
 	}
 	
 	void Update () 
 	{
-		FindingPath(grid.player.position, grid.destPos.position);
+		FindingPath(map.posA.position, map.posB.position);
 	}
 
-	// A Star 寻路
+	/// <summary>
+	/// A Star 寻路
+	/// </summary>
 	void FindingPath(Vector3 start, Vector3 end) 
 	{
 		if (lastStart.Equals(start) && lastEnd.Equals(end))
@@ -28,98 +30,97 @@ public class FindPath : MonoBehaviour
 		lastStart = start;
 		lastEnd = end;
 
-		Grid.NodeItem startNode = grid.GetItem(start);
-		Grid.NodeItem endNode = grid.GetItem(end);
+		Map.Cell startCell = map.GetCell(start);
+		Map.Cell endCell = map.GetCell(end);
 
 		/// <summary>
 		/// 所有被考虑来寻找最短路径的格子
 		/// </summary>
-		List<Grid.NodeItem> openList = new List<Grid.NodeItem> ();
+		List<Map.Cell> openList = new List<Map.Cell>();
 		/// <summary>
 		/// 不会再被考虑的格子
 		/// </summary>
-		HashSet<Grid.NodeItem> closeSet = new HashSet<Grid.NodeItem>();
-		openList.Add(startNode);
+		HashSet<Map.Cell> closeSet = new HashSet<Map.Cell>();
+		openList.Add(startCell);
 
-		while (openList.Count > 0) 
+		while (openList.Count > 0)
 		{
-			Grid.NodeItem curNode = openList [0];
+			Map.Cell curCell = openList[0];
 
-			// 从 openList 中找出 fCost 最小的节点
 			for (int i = 0; i < openList.Count; i++) 
 			{
-				if (openList[i].fCost < curNode.fCost) 
+				// 从 openList 中找出 f 最小的格子
+				if (openList[i].f < curCell.f) 
 				{
-					curNode = openList[i];
+					curCell = openList[i];
 				}
 			}
 
-			openList.Remove(curNode);
-			closeSet.Add(curNode);
+			openList.Remove(curCell);
+			closeSet.Add(curCell);
 
-			// 查找完成
-			if (curNode == endNode)
+			// 寻路完成
+			if (curCell == endCell)
 			{
-				GeneratePath(startNode, endNode);
+				GeneratePath(startCell, endCell);
 				return;
 			}
 
-			// 判断周围节点，选择一个最优的节点
-			foreach (var item in grid.GetNeibourhood(curNode)) 
+			// 判断周围格子，选择一个最优的格子
+			foreach (var cell in map.GetNeighbours(curCell)) 
 			{
-				// 如果是墙或者已经在关闭列表中
-				if (item.isWall || closeSet.Contains(item))
+				if (cell.isWall || closeSet.Contains(cell))
 					continue;
 
-				item.hCost = GetHCost(item, endNode);
-				int gCost = curNode.gCost + GetGCost(curNode, item);
+				int g = curCell.g + GetG(curCell, cell);
 				// 如果不在列表中，则加入列表
-				if (!openList.Contains(item))
+				if (!openList.Contains(cell))
 				{
-					item.gCost = gCost;
-					item.parent = curNode;
-					openList.Add(item);
+					cell.g = g;
+					cell.h = GetH(cell, endCell);
+					cell.parent = curCell;
+					openList.Add(cell);
 				}
 				else
 				{
-					// 如果已经在列表中，并且 gCost 更小，则更新 gCost 和 parent
-					if (gCost < item.gCost)
+					// 如果已经在列表中，并且 g 更小，则更新 g 和 parent
+					if (g < cell.g)
 					{
-						item.gCost = gCost;
-						item.parent = curNode;
+						cell.g = g;
+						cell.parent = curCell;
 					}
 				}
 			}
 		}
-		GeneratePath (startNode, null);
+		GeneratePath (startCell, null);
 	}
 
 	/// <summary>
 	/// 生成路径
 	/// </summary>
-	void GeneratePath(Grid.NodeItem startNode, Grid.NodeItem endNode) 
+	void GeneratePath(Map.Cell startCell, Map.Cell endCell) 
 	{
-		List<Grid.NodeItem> path = new List<Grid.NodeItem>();
-		if (endNode != null) 
+		List<Map.Cell> path = new List<Map.Cell>();
+		if (endCell != null) 
 		{
-			Grid.NodeItem temp = endNode;
-			while (temp != startNode) 
+			Map.Cell temp = endCell;
+			while (temp != startCell) 
 			{
-				path.Add (temp);
+				path.Add(temp);
 				temp = temp.parent;
 			}
 			// 反转路径
-			path.Reverse ();
+			path.Reverse();
 		}
 		// 更新路径
-		grid.UpdatePath(path);
+		map.UpdatePath(path);
 	}
 
 	/// <summary>
-	/// 相邻节点的 gCost
+	/// 相邻格子的 G 值
 	/// 横纵移动代价为 10 ，对角线移动代价为 14
 	/// </summary>
-	int GetGCost(Grid.NodeItem a, Grid.NodeItem b)
+	int GetG(Map.Cell a, Map.Cell b)
 	{
 		if (a.x == b.x || a.y == b.y)
 		{
@@ -132,10 +133,30 @@ public class FindPath : MonoBehaviour
 	}
 
 	/// <summary>
-	/// 使用对角算法获取两个节点之间的 hCost 距离
+	/// 使用曼哈顿算法获取两个格子之间的 H 值
+	/// </summary>
+	int GetH(Map.Cell a, Map.Cell b) 
+	{
+		int w = Mathf.Abs(a.x - b.x);
+		int h = Mathf.Abs(a.y - b.y);
+		return w + h;
+	}
+
+	/// <summary>
+	/// 使几何算法获取两个格子之间的 H 值
+	/// </summary>
+	int GetH2(Map.Cell a, Map.Cell b) 
+	{
+		int w = Mathf.Abs(a.x - b.x);
+		int h = Mathf.Abs(a.y - b.y);
+		return Mathf.RoundToInt(Mathf.Sqrt(w * w + h * h));
+	}
+
+	/// <summary>
+	/// 使用对角算法获取两个格子之间的 H 值
 	/// 横纵移动代价为 10 ，对角线移动代价为 14
 	/// </summary>
-	int GetHCost(Grid.NodeItem a, Grid.NodeItem b) 
+	int GetH3(Map.Cell a, Map.Cell b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);
