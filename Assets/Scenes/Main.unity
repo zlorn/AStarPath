@@ -1669,7 +1669,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u62D6\u52A8\u7EFF\u8272\u5C0F\u7403\uFF08\u8D77\u70B9\uFF09\u6216\u8005\u7EA2\u8272\u5C0F\u7403\uFF08\u7EC8\u70B9\uFF09\u4EE5\u5B9E\u65F6\u66F4\u65B0\u5BFB\u8DEF\u8DEF\u5F84\u3002"
+  m_Text: 'Drag the green ball or the red ball to update the pathfinding path in
+    real time. '
 --- !u!222 &1720519045
 CanvasRenderer:
   m_ObjectHideFlags: 0
