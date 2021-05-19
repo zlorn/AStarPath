@@ -4,32 +4,50 @@ using System.Collections.Generic;
 
 public class FindPath : MonoBehaviour 
 {
+
+	enum HType
+	{
+		/// <summary>
+		/// 曼哈顿算法
+		/// </summary>
+		Manhattan,
+		/// <summary>
+		/// 几何算法（欧几里得算法）
+		/// </summary>
+		Euclidean,
+		/// <summary>
+		/// 对角算法
+		/// </summary>
+		Diagonal
+	}
+
 	private Map map;
-	private Vector3 lastStart = Vector3.zero;
-	private Vector3 lastEnd = Vector3.zero;
 
 	void Start () 
 	{
 		map = GetComponent<Map>();
 	}
-	
-	void Update () 
+
+	public void ManhattanFind()
 	{
-		FindingPath(map.posA.position, map.posB.position);
+		StartCoroutine(FindingPath(map.posA.position, map.posB.position, HType.Manhattan));
+	}
+
+	public void EuclideanFind()
+	{
+		StartCoroutine(FindingPath(map.posA.position, map.posB.position, HType.Euclidean));
+	}
+
+	public void DiagonalFind()
+	{
+		StartCoroutine(FindingPath(map.posA.position, map.posB.position, HType.Diagonal));
 	}
 
 	/// <summary>
 	/// A Star 寻路
 	/// </summary>
-	void FindingPath(Vector3 start, Vector3 end) 
+	IEnumerator FindingPath(Vector3 start, Vector3 end, HType hType) 
 	{
-		if (lastStart.Equals(start) && lastEnd.Equals(end))
-		{
-			return;
-		}
-		lastStart = start;
-		lastEnd = end;
-
 		Map.Cell startCell = map.GetCell(start);
 		Map.Cell endCell = map.GetCell(end);
 
@@ -42,6 +60,10 @@ public class FindPath : MonoBehaviour
 		/// </summary>
 		HashSet<Map.Cell> closeSet = new HashSet<Map.Cell>();
 		openList.Add(startCell);
+
+		GeneratePath(startCell, null);
+		map.ClearProgress();
+		map.UpdateProgress(startCell);
 
 		while (openList.Count > 0)
 		{
@@ -63,7 +85,7 @@ public class FindPath : MonoBehaviour
 			if (curCell == endCell)
 			{
 				GeneratePath(startCell, endCell);
-				return;
+				yield break;
 			}
 
 			// 判断周围格子，选择一个最优的格子
@@ -77,9 +99,12 @@ public class FindPath : MonoBehaviour
 				if (!openList.Contains(cell))
 				{
 					cell.g = g;
-					cell.h = GetH(cell, endCell);
+					cell.h = GetH(cell, endCell, hType);
 					cell.parent = curCell;
 					openList.Add(cell);
+
+					map.UpdateProgress(cell);
+					yield return new WaitForSeconds(0.05f);
 				}
 				else
 				{
@@ -92,7 +117,7 @@ public class FindPath : MonoBehaviour
 				}
 			}
 		}
-		GeneratePath (startCell, null);
+		GeneratePath(startCell, null);
 	}
 
 	/// <summary>
@@ -113,7 +138,7 @@ public class FindPath : MonoBehaviour
 			path.Reverse();
 		}
 		// 更新路径
-		map.UpdatePath(path);
+		map.GeneratePath(path);
 	}
 
 	/// <summary>
@@ -133,9 +158,28 @@ public class FindPath : MonoBehaviour
 	}
 
 	/// <summary>
+	/// 获取两个格子之间的 H 值
+	/// </summary>
+	int GetH(Map.Cell a, Map.Cell b, HType hType)
+	{
+		if (hType == HType.Manhattan)
+		{
+			return GetHByManhattan(a, b);
+		}
+		else if (hType == HType.Euclidean)
+		{
+			return GetHByEuclidean(a, b);
+		}
+		else
+		{
+			return GetHByDiagonal(a, b);
+		}
+	}
+
+	/// <summary>
 	/// 使用曼哈顿算法获取两个格子之间的 H 值
 	/// </summary>
-	int GetH(Map.Cell a, Map.Cell b) 
+	int GetHByManhattan(Map.Cell a, Map.Cell b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);
@@ -145,7 +189,7 @@ public class FindPath : MonoBehaviour
 	/// <summary>
 	/// 使几何算法获取两个格子之间的 H 值
 	/// </summary>
-	int GetH2(Map.Cell a, Map.Cell b) 
+	int GetHByEuclidean(Map.Cell a, Map.Cell b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);
@@ -156,7 +200,7 @@ public class FindPath : MonoBehaviour
 	/// 使用对角算法获取两个格子之间的 H 值
 	/// 横纵移动代价为 10 ，对角线移动代价为 14
 	/// </summary>
-	int GetH3(Map.Cell a, Map.Cell b) 
+	int GetHByDiagonal(Map.Cell a, Map.Cell b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);

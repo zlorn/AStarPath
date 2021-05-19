@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6476308}
   - component: {fileID: 2373862}
   m_Layer: 0
-  m_Name: PathPoint
+  m_Name: ProgressPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -73,7 +73,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 16f608a8f7e524d46aa97b65d95de6b4, type: 2}
+  - {fileID: 2100000, guid: 67e32014bb4abde4f88c3fd1bd173097, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

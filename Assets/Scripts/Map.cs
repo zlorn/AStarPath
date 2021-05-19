@@ -5,6 +5,7 @@ public class Map : MonoBehaviour
 {
 	public GameObject wall;
 	public GameObject pathPoint;
+	public GameObject progressPoint;
 
 	public LayerMask wallLayer;
 
@@ -24,6 +25,7 @@ public class Map : MonoBehaviour
 		/// 距离起点的长度 
 		/// </summary>
 		public int g;
+		
 		/// <summary>
 		/// 距离目标点的长度
 		/// </summary>
@@ -56,7 +58,9 @@ public class Map : MonoBehaviour
 
 	private GameObject wallRoot;
 	private GameObject pathRoot;
+	private GameObject progressRoot;
 	private List<GameObject> pathObjs = new List<GameObject>();
+	private List<GameObject> progressObjs = new List<GameObject>();
 
 	void Awake() 
 	{
@@ -66,12 +70,13 @@ public class Map : MonoBehaviour
 
 		wallRoot = new GameObject ("WallRoot");
 		pathRoot = new GameObject ("PathRoot");
+		progressRoot = new GameObject("ProgressRoot");
 
 		for (int x = 0; x < w; x++) 
 		{
 			for (int y = 0; y < h; y++) 
 			{
-				Vector3 pos = new Vector3 (x, y, -0.1f);
+				Vector3 pos = new Vector3 (x, y, -0.2f);
 				bool isWall = Physics.CheckSphere (pos, 0.5f, wallLayer);
 				cells[x, y] = new Cell (isWall, pos, x, y);
 				if (isWall) 
@@ -118,27 +123,37 @@ public class Map : MonoBehaviour
 	}
 
 	/// <summary>
-	/// 更新路径
+	/// 生成路径
 	/// </summary>
-	public void UpdatePath(List<Cell> lines) 
+	public void GeneratePath(List<Cell> lines) 
 	{
+		for (int i = pathObjs.Count - 1; i >= 0; i --)
+		{
+			Destroy(pathObjs[i]);
+			pathObjs.RemoveAt(i);
+		}
+
 		for (int i = 0; i < lines.Count; i++) 
 		{
-			if (i < pathObjs.Count) 
-			{
-				pathObjs[i].transform.position = lines[i].pos;
-				pathObjs[i].SetActive(true);
-			}
-			else 
-			{
-				GameObject obj = GameObject.Instantiate(pathPoint, lines[i].pos, Quaternion.identity);
-				obj.transform.SetParent(pathRoot.transform);
-				pathObjs.Add(obj);
-			}
+			GameObject obj = GameObject.Instantiate(pathPoint, lines[i].pos, Quaternion.identity);
+			obj.transform.SetParent(pathRoot.transform);
+			pathObjs.Add(obj);
 		}
-		for (int i = lines.Count; i < pathObjs.Count; i++)
+	}
+
+	public void ClearProgress()
+	{
+		for (int i = progressObjs.Count - 1; i >= 0; i--)
 		{
-			pathObjs[i].SetActive(false);
+			Destroy(progressObjs[i]);
+			progressObjs.RemoveAt(i);
 		}
+	}
+
+	public void UpdateProgress(Cell cell)
+	{
+		GameObject obj = GameObject.Instantiate(progressPoint, cell.pos + new Vector3(0, 0, 0.1f), Quaternion.identity);
+		obj.transform.SetParent(progressRoot.transform);
+		progressObjs.Add(obj);
 	}
 }
