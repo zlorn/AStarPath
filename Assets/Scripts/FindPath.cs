@@ -178,22 +178,24 @@ public class FindPath : MonoBehaviour
 
 	/// <summary>
 	/// 使用曼哈顿算法获取两个格子之间的 H 值
+	/// 横纵移动代价为 10 ，对角线移动代价为 14
 	/// </summary>
 	int GetHByManhattan(Map.Cell a, Map.Cell b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);
-		return w + h;
+		return (w + h) * 10;
 	}
 
 	/// <summary>
 	/// 使几何算法获取两个格子之间的 H 值
+	/// 横纵移动代价为 10 ，对角线移动代价为 14
 	/// </summary>
 	int GetHByEuclidean(Map.Cell a, Map.Cell b) 
 	{
 		int w = Mathf.Abs(a.x - b.x);
 		int h = Mathf.Abs(a.y - b.y);
-		return Mathf.RoundToInt(Mathf.Sqrt(w * w + h * h));
+		return Mathf.RoundToInt(Mathf.Sqrt(w * w + h * h)) * 10;
 	}
 
 	/// <summary>
